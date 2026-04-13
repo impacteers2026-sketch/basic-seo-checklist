@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SEO Checklist for Developers — Impacteers</title>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
@@ -215,7 +216,32 @@
   <!-- Submit Panel -->
   <div class="submit-panel">
     <h2>📤 Submit for Review</h2>
-    <p>This sends your checklist completion summary + reviewer info to the SEO manager. Screenshots are referenced by filename.</p>
+    <p>Sends checklist summary + screenshots directly to your inbox via EmailJS — no spam, no middleman.</p>
+
+    <details style="margin-bottom:1.25rem;">
+      <summary style="font-size:13px;font-weight:600;color:var(--green);cursor:pointer;user-select:none;">⚙️ One-time EmailJS setup (3 steps)</summary>
+      <ol style="margin:12px 0 0 1rem;font-size:13px;color:var(--text2);line-height:2;">
+        <li>Go to <a href="https://www.emailjs.com" target="_blank" style="color:var(--green);">emailjs.com</a> → sign up free → grab your <strong>Public Key</strong> from Account → API Keys</li>
+        <li>Add an <strong>Email Service</strong> (connect your Gmail) → copy the <strong>Service ID</strong></li>
+        <li>Create an <strong>Email Template</strong> — paste the template below → copy the <strong>Template ID</strong></li>
+      </ol>
+      <div style="margin-top:12px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:12px;font-size:12px;font-family:'SF Mono','Fira Code',monospace;color:var(--text2);white-space:pre-wrap;line-height:1.7;">Subject: {{subject}}
+
+Reviewer: {{reviewer_name}} ({{reviewer_role}})
+Submitted: {{submitted_at}}
+Completion: {{completion}}
+
+--- COMPLETED ---
+{{completed_items}}
+
+--- PENDING ---
+{{incomplete_items}}
+
+--- SCREENSHOTS ---
+{{screenshots}}</div>
+      <p style="margin-top:10px;font-size:12px;color:var(--text3);">Then open this HTML file, find the 3 lines at the top of the &lt;script&gt; block and replace <code>YOUR_PUBLIC_KEY</code>, <code>YOUR_SERVICE_ID</code>, <code>YOUR_TEMPLATE_ID</code>.</p>
+    </details>
+
     <button class="submit-btn" id="submit-btn" onclick="submitChecklist()">
       <span>Submit Checklist</span>
     </button>
@@ -491,7 +517,16 @@ function render(){
 }
 
 // ─────────────────────────────────────────────
-// SUBMIT  (Formspree — replace YOUR_FORM_ID)
+// EMAILJS CONFIG
+// ⚠️  Fill in your 3 EmailJS values below.
+// Setup guide is in the submit panel on the page.
+// ─────────────────────────────────────────────
+const EMAILJS_PUBLIC_KEY  = 'YqdJDFWqLOQqoiwy-';
+const EMAILJS_SERVICE_ID  = 'service_l5lvnqp';
+const EMAILJS_TEMPLATE_ID = 'template_xyj4j7t';
+
+// ─────────────────────────────────────────────
+// SUBMIT
 // ─────────────────────────────────────────────
 async function submitChecklist(){
   const name = document.getElementById('reviewer-name').value.trim();
@@ -505,111 +540,74 @@ async function submitChecklist(){
     return;
   }
 
-  // Build summary
+  if(EMAILJS_PUBLIC_KEY === 'YOUR_PUBLIC_KEY'){
+    statusEl.className = 'submit-status err';
+    statusEl.innerHTML = '⚠️ EmailJS not configured yet. Follow the 3-step setup in the panel below.';
+    return;
+  }
+
   const keys = Object.keys(state);
-  const doneIds = keys.filter(k=>state[k]);
   const total = keys.length;
-  const doneCount = doneIds.length;
+  const doneCount = keys.filter(k=>state[k]).length;
   const pct = total ? Math.round(doneCount/total*100) : 0;
+  const ts = new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
 
-  // ── Build HTML email body with embedded screenshots ──
-  let completedHtml = '';
-  let incompleteHtml = '';
-
+  // Build plain-text completed list (with screenshot filenames)
+  const completedLines = [];
+  const incompleteLines = [];
   ['pre','post'].forEach(ph => {
     data[ph].forEach((sec,si) => {
       sec.items.forEach((item,ii) => {
         const id = buildId(ph,si,ii);
-        const badge = item.p === 'critical' ? `<span style="background:#FCEBEB;color:#A32D2D;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;">${item.p}</span>`
-                    : item.p === 'important' ? `<span style="background:#FAEEDA;color:#854F0B;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;">${item.p}</span>`
-                    : `<span style="background:#EAF3DE;color:#3B6D11;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;">nice to have</span>`;
-        const phLabel = `<span style="font-size:11px;color:#888;font-weight:600;text-transform:uppercase;">${ph === 'pre' ? 'Pre-launch' : 'Post-launch'} · ${sec.title}</span>`;
+        const phase = ph === 'pre' ? 'Pre-launch' : 'Post-launch';
         if(state[id]){
-          const sc = screenshots[id];
-          const imgHtml = sc
-            ? `<div style="margin-top:8px;"><p style="font-size:11px;color:#888;margin:0 0 4px;">📎 ${sc.name}</p><img src="${sc.dataUrl}" style="max-width:480px;max-height:300px;border-radius:6px;border:1px solid #ddd;display:block;" /></div>`
-            : '';
-          completedHtml += `<tr><td style="padding:10px 0;border-bottom:1px solid #f0efe9;">
-            <div style="margin-bottom:4px;">${phLabel}</div>
-            <div style="font-size:14px;font-weight:500;color:#1a1a18;margin-bottom:4px;">${item.t} ${badge}</div>
-            <div style="font-size:12px;color:#888;font-family:monospace;">${item.m}</div>
-            ${imgHtml}
-          </td></tr>`;
+          const sc = screenshots[id] ? ` [📎 ${screenshots[id].name}]` : '';
+          completedLines.push(`✅ [${phase}] ${sec.title} → ${item.t}${sc}`);
         } else {
-          incompleteHtml += `<tr><td style="padding:8px 0;border-bottom:1px solid #f0efe9;">
-            <div style="margin-bottom:2px;">${phLabel}</div>
-            <div style="font-size:13px;color:#5f5e5a;">${item.t} ${badge}</div>
-          </td></tr>`;
+          incompleteLines.push(`⏳ [${phase}] ${sec.title} → ${item.t} (${item.p})`);
         }
       });
     });
   });
 
-  const ts = new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'});
-  const htmlBody = `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;max-width:700px;margin:0 auto;color:#1a1a18;">
-      <div style="background:#1D9E75;padding:24px 28px;border-radius:12px 12px 0 0;">
-        <div style="font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);margin-bottom:6px;">Impacteers · Internal SEO Tool</div>
-        <h1 style="margin:0;font-size:22px;font-weight:600;color:#fff;">SEO Checklist Submission</h1>
-      </div>
-      <div style="background:#f7f7f5;padding:20px 28px;border:1px solid #e8e8e4;">
-        <table style="width:100%;border-collapse:collapse;">
-          <tr><td style="padding:6px 0;font-size:13px;color:#888;width:140px;">Reviewer</td><td style="font-size:14px;font-weight:600;color:#1a1a18;">${name}</td></tr>
-          <tr><td style="padding:6px 0;font-size:13px;color:#888;">Role</td><td style="font-size:14px;color:#1a1a18;">${role}</td></tr>
-          <tr><td style="padding:6px 0;font-size:13px;color:#888;">Submitted</td><td style="font-size:14px;color:#1a1a18;">${ts}</td></tr>
-          <tr><td style="padding:6px 0;font-size:13px;color:#888;">Completion</td><td><span style="font-size:18px;font-weight:700;color:#1D9E75;">${pct}%</span> <span style="font-size:13px;color:#888;">(${doneCount} of ${total} items)</span></td></tr>
-        </table>
-      </div>
-      ${completedHtml ? `
-      <div style="padding:20px 28px;background:#fff;border:1px solid #e8e8e4;border-top:none;">
-        <h2 style="font-size:14px;font-weight:700;color:#1D9E75;letter-spacing:0.06em;text-transform:uppercase;margin:0 0 12px;">✅ Completed Items</h2>
-        <table style="width:100%;border-collapse:collapse;">${completedHtml}</table>
-      </div>` : ''}
-      ${incompleteHtml ? `
-      <div style="padding:20px 28px;background:#fff;border:1px solid #e8e8e4;border-top:none;">
-        <h2 style="font-size:14px;font-weight:700;color:#854F0B;letter-spacing:0.06em;text-transform:uppercase;margin:0 0 12px;">⏳ Pending Items</h2>
-        <table style="width:100%;border-collapse:collapse;">${incompleteHtml}</table>
-      </div>` : ''}
-      <div style="padding:16px 28px;background:#f0efe9;border:1px solid #e8e8e4;border-top:none;border-radius:0 0 12px 12px;display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:12px;color:#888;"><strong style="color:#5f5e5a;">Girish Kumar G</strong> · Programmatic SEO Manager</span>
-        <span style="font-size:11px;color:#1D9E75;font-weight:600;letter-spacing:0.05em;">Father of SEO</span>
-      </div>
-    </div>`;
-
-  const payload = {
-    reviewer_name: name,
-    reviewer_role: role,
-    submitted_at: ts,
-    completion: `${doneCount}/${total} (${pct}%)`,
-    _subject: `SEO Checklist — ${name} · ${pct}% complete`,
-    _html: htmlBody
-  };
+  // Build screenshot summary as base64 image list (max 3 to stay within email size)
+  const shotEntries = Object.entries(screenshots).slice(0, 3);
+  let screenshotBlock = 'None attached.';
+  if(shotEntries.length){
+    screenshotBlock = shotEntries.map(([id, sc]) => {
+      // Find item label for this id
+      const [ph, si, ii] = id.split('-');
+      const item = data[ph]?.[si]?.items?.[ii];
+      return `${item ? item.t : id}: ${sc.name}\n${sc.dataUrl}`;
+    }).join('\n\n');
+  }
 
   btn.disabled = true;
-  btn.querySelector('span').textContent = 'Submitting…';
+  btn.querySelector('span').textContent = 'Sending…';
   statusEl.className = 'submit-status';
   statusEl.textContent = '';
 
   try {
-    const FORMSPREE_ID = 'mlgaerkl';
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
-    const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload)
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      reviewer_name:    name,
+      reviewer_role:    role,
+      submitted_at:     ts,
+      completion:       `${doneCount} / ${total} (${pct}%)`,
+      completed_items:  completedLines.join('\n') || 'None',
+      incomplete_items: incompleteLines.join('\n') || 'All done!',
+      screenshots:      screenshotBlock,
+      subject:          `SEO Checklist — ${name} · ${pct}% complete`
     });
 
-    if(res.ok){
-      statusEl.className = 'submit-status ok';
-      statusEl.textContent = `✅ Submitted successfully! ${doneCount}/${total} items reported as done.`;
-      btn.querySelector('span').textContent = 'Submit Checklist';
-      btn.disabled = false;
-    } else {
-      throw new Error('Server error ' + res.status);
-    }
+    statusEl.className = 'submit-status ok';
+    statusEl.textContent = `✅ Email sent! ${doneCount}/${total} items reported. Check your inbox.`;
   } catch(err){
+    console.error('EmailJS error:', err);
     statusEl.className = 'submit-status err';
-    statusEl.textContent = '❌ Submission failed. Please check your Formspree ID or try again.';
+    statusEl.textContent = `❌ Send failed: ${err?.text || err?.message || 'Unknown error'}. Check your EmailJS config.`;
+  } finally {
     btn.querySelector('span').textContent = 'Submit Checklist';
     btn.disabled = false;
   }
