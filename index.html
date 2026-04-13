@@ -218,30 +218,6 @@
     <h2>📤 Submit for Review</h2>
     <p>Sends checklist summary + screenshots directly to your inbox via EmailJS — no spam, no middleman.</p>
 
-    <details style="margin-bottom:1.25rem;">
-      <summary style="font-size:13px;font-weight:600;color:var(--green);cursor:pointer;user-select:none;">⚙️ One-time EmailJS setup (3 steps)</summary>
-      <ol style="margin:12px 0 0 1rem;font-size:13px;color:var(--text2);line-height:2;">
-        <li>Go to <a href="https://www.emailjs.com" target="_blank" style="color:var(--green);">emailjs.com</a> → sign up free → grab your <strong>Public Key</strong> from Account → API Keys</li>
-        <li>Add an <strong>Email Service</strong> (connect your Gmail) → copy the <strong>Service ID</strong></li>
-        <li>Create an <strong>Email Template</strong> — paste the template below → copy the <strong>Template ID</strong></li>
-      </ol>
-      <div style="margin-top:12px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:var(--radius);padding:12px;font-size:12px;font-family:'SF Mono','Fira Code',monospace;color:var(--text2);white-space:pre-wrap;line-height:1.7;">Subject: {{subject}}
-
-Reviewer: {{reviewer_name}} ({{reviewer_role}})
-Submitted: {{submitted_at}}
-Completion: {{completion}}
-
---- COMPLETED ---
-{{completed_items}}
-
---- PENDING ---
-{{incomplete_items}}
-
---- SCREENSHOTS ---
-{{screenshots}}</div>
-      <p style="margin-top:10px;font-size:12px;color:var(--text3);">Then open this HTML file, find the 3 lines at the top of the &lt;script&gt; block and replace <code>YOUR_PUBLIC_KEY</code>, <code>YOUR_SERVICE_ID</code>, <code>YOUR_TEMPLATE_ID</code>.</p>
-    </details>
-
     <button class="submit-btn" id="submit-btn" onclick="submitChecklist()">
       <span>Submit Checklist</span>
     </button>
@@ -421,8 +397,19 @@ function handleFileSelect(id, input){
   if(!file) return;
   const reader = new FileReader();
   reader.onload = function(e){
-    screenshots[id] = { name: file.name, dataUrl: e.target.result };
-    updateUploadZone(id);
+    // Compress to thumbnail before storing
+    const img = new Image();
+    img.onload = function(){
+      const canvas = document.createElement('canvas');
+      const MAX = 300;
+      const ratio = Math.min(MAX/img.width, MAX/img.height, 1);
+      canvas.width  = Math.round(img.width  * ratio);
+      canvas.height = Math.round(img.height * ratio);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      screenshots[id] = { name: file.name, dataUrl: canvas.toDataURL('image/jpeg', 0.5) };
+      updateUploadZone(id);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
@@ -570,17 +557,19 @@ async function submitChecklist(){
     });
   });
 
-  // Build screenshot summary as base64 image list (max 3 to stay within email size)
-  const shotEntries = Object.entries(screenshots).slice(0, 3);
-  let screenshotBlock = 'None attached.';
-  if(shotEntries.length){
-    screenshotBlock = shotEntries.map(([id, sc]) => {
-      // Find item label for this id
-      const [ph, si, ii] = id.split('-');
-      const item = data[ph]?.[si]?.items?.[ii];
-      return `${item ? item.t : id}: ${sc.name}\n${sc.dataUrl}`;
-    }).join('\n\n');
-  }
+  // Build screenshot variables — one per item, named shot_0, shot_1 …
+  const shotEntries = Object.entries(screenshots);
+  const shotParams = {};
+  const shotLines  = [];
+  shotEntries.forEach(([id, sc], i) => {
+    const [ph, si, ii] = id.split('-');
+    const item = data[ph]?.[parseInt(si)]?.items?.[parseInt(ii)];
+    const label = item ? item.t : id;
+    shotParams[`shot_${i}_label`] = label;
+    shotParams[`shot_${i}_image`] = sc.dataUrl;   // compressed thumbnail
+    shotLines.push(`[${i+1}] ${label} — ${sc.name}`);
+  });
+  const screenshotSummary = shotLines.length ? shotLines.join('\n') : 'None attached.';
 
   btn.disabled = true;
   btn.querySelector('span').textContent = 'Sending…';
@@ -597,7 +586,8 @@ async function submitChecklist(){
       completion:       `${doneCount} / ${total} (${pct}%)`,
       completed_items:  completedLines.join('\n') || 'None',
       incomplete_items: incompleteLines.join('\n') || 'All done!',
-      screenshots:      screenshotBlock,
+      screenshots:      screenshotSummary,
+      ...shotParams,
       subject:          `SEO Checklist — ${name} · ${pct}% complete`
     });
 
