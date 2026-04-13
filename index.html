@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEO Checklist for Developers — Impacteers</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #ffffff; --bg2: #f7f7f5; --bg3: #f0efe9;
+    --text: #1a1a18; --text2: #5f5e5a; --text3: #888780;
+    --border: rgba(0,0,0,0.1); --border2: rgba(0,0,0,0.18);
+    --green: #1D9E75; --green-light: #E1F5EE;
+    --radius: 8px; --radius-lg: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a18; --bg2: #242422; --bg3: #2c2c2a;
+      --text: #f0efe9; --text2: #b4b2a9; --text3: #888780;
+      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
+      --green-light: #04342C;
+    }
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg3); color: var(--text); min-height: 100vh; }
+  .page { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  .page-header { margin-bottom: 2rem; }
+  .brand { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); margin-bottom: 12px; }
+  h1 { font-size: 28px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+  .desc { font-size: 15px; color: var(--text2); margin-bottom: 1.5rem; }
+
+  /* ── Reviewer Identity Card ── */
+  .identity-card {
+    background: var(--bg);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .identity-card h2 {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase;
+    color: var(--text3); margin-bottom: 1rem;
+  }
+  .identity-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+  .identity-field { flex: 1; min-width: 200px; }
+  .identity-field label { font-size: 12px; font-weight: 600; color: var(--text3); display: block; margin-bottom: 5px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .identity-field input {
+    width: 100%; padding: 8px 12px; border-radius: var(--radius); border: 0.5px solid var(--border2);
+    background: var(--bg2); color: var(--text); font-size: 14px;
+    outline: none; transition: border-color 0.15s;
+  }
+  .identity-field input:focus { border-color: var(--green); }
+  .identity-field input::placeholder { color: var(--text3); }
+
+  /* ── Progress ── */
+  .progress-wrap { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+  .progress-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .progress-label { font-size: 14px; color: var(--text2); }
+  .progress-label strong { color: var(--text); font-weight: 600; }
+  .progress-pct { font-size: 22px; font-weight: 600; color: var(--green); }
+  .progress-track { height: 8px; background: var(--bg3); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 99px; transition: width 0.4s ease; }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 8px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .tab { padding: 7px 18px; font-size: 13px; font-weight: 500; border-radius: 99px; border: 0.5px solid var(--border2); cursor: pointer; background: var(--bg); color: var(--text2); transition: all 0.15s; }
+  .tab.active { background: var(--green); color: #fff; border-color: var(--green); }
+  .tab:hover:not(.active) { background: var(--bg2); }
+  .reset-btn { font-size: 13px; color: var(--text3); border: none; background: none; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+  .reset-btn:hover { color: var(--text); }
+
+  /* ── Checklist ── */
+  .phase-label { font-size: 11px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text3); margin: 2rem 0 1rem; padding-bottom: 8px; border-bottom: 0.5px solid var(--border); }
+  .section { margin-bottom: 1.25rem; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+  .section-header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 0.5px solid var(--border); background: var(--bg2); }
+  .section-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+  .section-title { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+  .section-progress { font-size: 12px; color: var(--text3); }
+  .item { display: flex; align-items: flex-start; gap: 14px; padding: 11px 16px; border-bottom: 0.5px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .item:last-child { border-bottom: none; }
+  .item:hover { background: var(--bg2); }
+  .item.done { opacity: 0.55; }
+  .cb { width: 18px; height: 18px; border-radius: 4px; border: 1.5px solid var(--border2); flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+  .cb.checked { background: var(--green); border-color: var(--green); }
+  .ck { display: none; color: #fff; font-size: 11px; font-weight: 700; }
+  .cb.checked .ck { display: block; }
+  .item-body { flex: 1; }
+  .item-label { font-size: 14px; color: var(--text); line-height: 1.4; display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+  .item-meta { font-size: 12px; color: var(--text3); margin-top: 3px; font-family: 'SF Mono', 'Fira Code', monospace; }
+  .badge { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+  .b-critical { background: #FCEBEB; color: #A32D2D; }
+  .b-important { background: #FAEEDA; color: #854F0B; }
+  .b-nice { background: #EAF3DE; color: #3B6D11; }
+  @media (prefers-color-scheme: dark) {
+    .b-critical { background: #501313; color: #F09595; }
+    .b-important { background: #412402; color: #FAC775; }
+    .b-nice { background: #173404; color: #C0DD97; }
+  }
+
+  /* ── Screenshot Upload per item ── */
+  .upload-zone {
+    margin-top: 8px;
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    background: var(--bg2);
+    transition: border-color 0.15s, background 0.15s;
+    user-select: none;
+  }
+  .upload-zone:hover { border-color: var(--green); background: var(--green-light); }
+  .upload-zone.has-file { border-color: var(--green); border-style: solid; background: var(--green-light); }
+  .upload-zone-icon { font-size: 16px; flex-shrink: 0; }
+  .upload-zone-text { font-size: 12px; color: var(--text3); }
+  .upload-zone.has-file .upload-zone-text { color: var(--green); font-weight: 500; }
+  .upload-zone input[type=file] { display: none; }
+  .thumb-wrap { position: relative; display: inline-block; margin-top: 6px; }
+  .thumb { max-width: 160px; max-height: 90px; border-radius: 6px; border: 0.5px solid var(--border); display: block; }
+  .thumb-remove {
+    position: absolute; top: -6px; right: -6px; width: 18px; height: 18px;
+    background: #e53e3e; color: #fff; border-radius: 50%; border: none; cursor: pointer;
+    font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+
+  /* ── Submit Panel ── */
+  .submit-panel {
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.5rem;
+    margin-top: 2rem;
+  }
+  .submit-panel h2 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+  .submit-panel p { font-size: 13px; color: var(--text2); margin-bottom: 1.25rem; }
+  .submit-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 24px; background: var(--green); color: #fff;
+    border: none; border-radius: var(--radius); font-size: 14px; font-weight: 600;
+    cursor: pointer; transition: opacity 0.15s;
+  }
+  .submit-btn:hover { opacity: 0.88; }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .submit-status { margin-top: 12px; font-size: 13px; font-weight: 500; }
+  .submit-status.ok { color: var(--green); }
+  .submit-status.err { color: #c53030; }
+
+  /* ── Footer signature ── */
+  .footer-sig {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 0.5px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .sig-left { font-size: 12px; color: var(--text3); }
+  .sig-name { font-weight: 600; color: var(--text2); }
+  .sig-tag { font-size: 11px; color: var(--green); font-weight: 500; letter-spacing: 0.05em; }
+
+  @media (max-width: 600px) { .page { padding: 1.5rem 1rem 3rem; } h1 { font-size: 22px; } .identity-row { flex-direction: column; } }
+  @media print {
+    body { background: #fff; }
+    .tabs, .reset-btn, .upload-zone, .submit-panel { display: none; }
+    .item { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="brand">Impacteers · Internal SEO Tool</div>
+    <h1>SEO Checklist for Developers</h1>
+    <p class="desc">Pre-launch and post-launch SEO requirements — tick items, attach screenshots, then submit for review.</p>
+  </div>
+
+  <!-- Reviewer Identity -->
+  <div class="identity-card">
+    <h2>👤 Reviewer Details</h2>
+    <div class="identity-row">
+      <div class="identity-field">
+        <label for="reviewer-name">Your Name</label>
+        <input type="text" id="reviewer-name" placeholder="e.g. Arjun Sharma" autocomplete="name" />
+      </div>
+      <div class="identity-field">
+        <label for="reviewer-role">Role / Designation</label>
+        <input type="text" id="reviewer-role" placeholder="e.g. Frontend Developer" autocomplete="organization-title" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-top">
+      <div class="progress-label"><strong id="done-count">0</strong> of <strong id="total-count">0</strong> items completed</div>
+      <div class="progress-pct" id="pct">0%</div>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="pbar" style="width:0%"></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('all',this)">All</button>
+    <button class="tab" onclick="switchTab('pre',this)">Pre-launch</button>
+    <button class="tab" onclick="switchTab('post',this)">Post-launch</button>
+    <button class="reset-btn" onclick="resetAll()" style="margin-left:auto">Reset all</button>
+  </div>
+
+  <div id="checklist"></div>
+
+  <!-- Submit Panel -->
+  <div class="submit-panel">
+    <h2>📤 Submit for Review</h2>
+    <p>This sends your checklist completion summary + reviewer info to the SEO manager. Screenshots are referenced by filename.</p>
+    <button class="submit-btn" id="submit-btn" onclick="submitChecklist()">
+      <span>Submit Checklist</span>
+    </button>
+    <div class="submit-status" id="submit-status"></div>
+  </div>
+
+  <!-- Footer Signature -->
+  <div class="footer-sig">
+    <div class="sig-left">
+      <span class="sig-name">Girish Kumar G</span> · <span>Programmatic SEO Manager</span>
+    </div>
+    <div class="sig-tag">Father of SEO</div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────
+const data = {
+  pre: [
+    { title:"Technical foundation", color:"#E1F5EE", icon:"⚙️", items:[
+      {t:"HTTPS enabled with valid SSL cert",m:"Mandatory for all modern ranking",p:"critical"},
+      {t:"Canonical tags on every page (self-referencing)",m:"<link rel='canonical' href='...' />",p:"critical"},
+      {t:"robots.txt configured correctly",m:"Block staging/admin; allow crawl of prod pages",p:"critical"},
+      {t:"XML sitemap generated and validated",m:"Include only indexable URLs, exclude 4xx/5xx",p:"critical"},
+      {t:"No orphan pages — all pages internally linked",m:"Use Screaming Frog or log files to verify",p:"important"},
+      {t:"Pagination handled (rel=prev/next or canonical)",m:"For blogs, e-com listing pages",p:"important"},
+      {t:"hreflang implemented for multilingual sites",m:"Required if serving 2+ language variants",p:"important"},
+      {t:"404 page returns actual 404 HTTP status code",m:"Soft 404s mislead Googlebot",p:"critical"},
+      {t:"Redirect chains max 1 hop (301s only)",m:"Chain >2 hops bleeds PageRank",p:"important"},
+      {t:"Parameterized URLs handled (canonical/noindex)",m:"Filters, sort, session IDs — Google sees duplicates",p:"important"},
+    ]},
+    { title:"On-page & meta", color:"#E6F1FB", icon:"📄", items:[
+      {t:"Unique <title> tag on every page (50–60 chars)",m:"Primary keyword near front of title",p:"critical"},
+      {t:"Unique meta description on every page (120–160 chars)",m:"Drives CTR — not a direct ranking factor",p:"important"},
+      {t:"Single H1 per page containing primary keyword",m:"No decorative H1s or multiple H1s",p:"critical"},
+      {t:"Heading hierarchy logical (H1 → H2 → H3)",m:"Don't skip levels for styling purposes",p:"important"},
+      {t:"Image alt text on all meaningful images",m:"Empty alt='' for decorative/presentational images",p:"important"},
+      {t:"Open Graph + Twitter card tags in <head>",m:"og:title, og:image, og:description minimum",p:"important"},
+      {t:"Favicon configured across all required sizes",m:"16px, 32px, 180px Apple touch icon",p:"nice"},
+    ]},
+    { title:"Core Web Vitals & performance", color:"#FAEEDA", icon:"⚡", items:[
+      {t:"LCP < 2.5s — largest paint element optimised",m:"Preload hero image; serve WebP/AVIF format",p:"critical"},
+      {t:"CLS < 0.1 — no layout shift on load",m:"Explicit width/height on all images and iframes",p:"critical"},
+      {t:"INP < 200ms — interaction responsiveness",m:"Replaced FID as of March 2024",p:"critical"},
+      {t:"Render-blocking CSS/JS eliminated",m:"Critical CSS inlined; non-critical JS deferred",p:"important"},
+      {t:"Images lazy-loaded below the fold",m:"loading='lazy' on all non-LCP images",p:"important"},
+      {t:"Server response time TTFB < 200ms",m:"CDN, caching headers, DB query optimisation",p:"important"},
+      {t:"Fonts loaded via font-display: swap",m:"Prevents invisible text flash (FOIT)",p:"important"},
+    ]},
+    { title:"Structured data", color:"#EEEDFE", icon:"{ }", items:[
+      {t:"Organization or LocalBusiness JSON-LD in sitewide layout",m:"name, url, logo, contactPoint minimum",p:"important"},
+      {t:"BreadcrumbList schema on all deep pages",m:"Enhances SERP appearance with path links",p:"important"},
+      {t:"Article or BlogPosting schema on content pages",m:"Enables rich results for articles",p:"important"},
+      {t:"FAQ schema where relevant",m:"Can generate FAQ rich results in SERP",p:"nice"},
+      {t:"Job schema on job listing pages",m:"Required for Google Jobs eligibility",p:"important"},
+      {t:"Schema validated in Rich Results Test",m:"https://search.google.com/test/rich-results",p:"critical"},
+    ]},
+    { title:"Analytics & tracking", color:"#FEF3F3", icon:"📊", items:[
+      {t:"GA4 property created and tag firing on all pages",m:"Verify via DebugView",p:"critical"},
+      {t:"GSC property verified (HTML tag or DNS)",m:"Both www and non-www variants",p:"critical"},
+      {t:"Goals / conversions configured in GA4",m:"Form submits, CTA clicks, sign-ups",p:"critical"},
+      {t:"Sitemap submitted to GSC",m:"Google Search Console → Sitemaps",p:"critical"},
+      {t:"404 error monitoring set up",m:"GA4 event or server-side log alert",p:"important"},
+    ]},
+  ],
+  post: [
+    { title:"Post-launch GSC checks", color:"#E1F5EE", icon:"🔍", items:[
+      {t:"GSC coverage report shows zero server errors",m:"Fix 5xx, redirect errors before scaling content",p:"critical"},
+      {t:"Core Web Vitals report in GSC — all URLs 'Good'",m:"Field data from CrUX — needs real traffic to populate",p:"important"},
+      {t:"GSC performance email alerts configured",m:"Catch traffic drops before they become disasters",p:"important"},
+    ]},
+    { title:"Indexation monitoring", color:"#E6F1FB", icon:"🗂️", items:[
+      {t:"Homepage indexed (site:yourdomain.com check)",m:"Google may take 24–72h after launch",p:"critical"},
+      {t:"Priority pages submitted via GSC URL Inspection",m:"Speeds up initial indexing significantly",p:"important"},
+      {t:"Index coverage monitored weekly for first 30 days",m:"Watch for crawl anomalies post-launch",p:"important"},
+      {t:"No duplicate content issues flagged",m:"Use Screaming Frog + Siteliner to audit",p:"important"},
+    ]},
+    { title:"Backlinks & authority", color:"#FAEEDA", icon:"🔗", items:[
+      {t:"NAP consistent across web (Name/Address/Phone)",m:"Google Business Profile, directories, website footer",p:"important"},
+      {t:"Google Business Profile created and verified",m:"Essential for local SEO visibility",p:"important"},
+      {t:"Initial backlinks from owned properties",m:"Social profiles, partner sites, press releases",p:"nice"},
+      {t:"Disavow file reviewed (if migrating from old domain)",m:"Carry clean disavow to new GSC property",p:"nice"},
+    ]},
+    { title:"Ongoing technical SEO", color:"#EEEDFE", icon:"🔧", items:[
+      {t:"Monthly crawl audit scheduled",m:"Screaming Frog or Ahrefs — catch broken links, new 4xx",p:"important"},
+      {t:"Log file analysis set up to track Googlebot",m:"Identify crawl budget waste on large sites",p:"nice"},
+      {t:"PageSpeed Insights score tracked monthly",m:"Regressions happen with every deploy",p:"important"},
+      {t:"Structured data monitored for errors in GSC",m:"Schema breaks often after CMS or template updates",p:"important"},
+      {t:"Core Web Vitals regression alert in deploy pipeline",m:"Lighthouse CI or WebPageTest in CI/CD",p:"nice"},
+    ]},
+    { title:"Content & UX signals", color:"#E1F5EE", icon:"✍️", items:[
+      {t:"Internal linking from existing high-authority pages",m:"Pass PageRank to new pages immediately post-launch",p:"important"},
+      {t:"Breadcrumbs visible and functional on all pages",m:"Both UX and crawl depth benefit",p:"important"},
+      {t:"404 page has navigation links back to site",m:"Reduce bounce rate on dead URLs",p:"nice"},
+      {t:"Blog/article pages have related content links",m:"Improve dwell time and crawl depth",p:"nice"},
+      {t:"Thin pages (<300 words) reviewed and expanded",m:"Or consolidated via canonical/noindex",p:"important"},
+    ]},
+  ]
+};
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let state = {};         // {id: bool}
+let screenshots = {};   // {id: {name, dataUrl}}
+let currentTab = 'all';
+
+function buildId(ph,si,ii){ return `${ph}-${si}-${ii}`; }
+
+function initState(){
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem('impacteers-seo-checklist')||'{}'); } catch(e){}
+  ['pre','post'].forEach(ph => {
+    data[ph].forEach((sec,si) => {
+      sec.items.forEach((_,ii) => {
+        const id = buildId(ph,si,ii);
+        state[id] = saved[id] || false;
+      });
+    });
+  });
+}
+
+function saveState(){
+  try { localStorage.setItem('impacteers-seo-checklist', JSON.stringify(state)); } catch(e){}
+}
+
+function updateProgress(){
+  const keys = Object.keys(state);
+  const done = keys.filter(k=>state[k]).length;
+  const pct = keys.length ? Math.round(done/keys.length*100) : 0;
+  document.getElementById('pbar').style.width = pct + '%';
+  document.getElementById('done-count').textContent = done;
+  document.getElementById('total-count').textContent = keys.length;
+  document.getElementById('pct').textContent = pct + '%';
+}
+
+function toggle(id, e){
+  // Don't toggle if click came from upload zone or its children
+  if(e && e.target.closest('.upload-zone')) return;
+  state[id] = !state[id];
+  const cb = document.getElementById('cb-'+id);
+  const row = document.getElementById('row-'+id);
+  if(cb){ cb.className = 'cb' + (state[id]?' checked':''); cb.querySelector('.ck').style.display = state[id]?'block':'none'; }
+  if(row){ row.className = 'item' + (state[id]?' done':''); }
+  updateSectionProgress(id.split('-')[0], parseInt(id.split('-')[1]));
+  saveState(); updateProgress();
+}
+
+function updateSectionProgress(ph, si){
+  const sec = data[ph][si];
+  const done = sec.items.filter((_,ii) => state[buildId(ph,si,ii)]).length;
+  const el = document.getElementById(`sp-${ph}-${si}`);
+  if(el) el.textContent = `${done}/${sec.items.length}`;
+}
+
+function resetAll(){
+  Object.keys(state).forEach(k => state[k] = false);
+  screenshots = {};
+  saveState(); render();
+}
+
+function switchTab(tab, btn){
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  render(true);
+}
+
+// ─────────────────────────────────────────────
+// SCREENSHOT HANDLING
+// ─────────────────────────────────────────────
+function handleFileSelect(id, input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e){
+    screenshots[id] = { name: file.name, dataUrl: e.target.result };
+    updateUploadZone(id);
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeScreenshot(id, e){
+  e.stopPropagation();
+  delete screenshots[id];
+  updateUploadZone(id);
+}
+
+function updateUploadZone(id){
+  const zone = document.getElementById('uz-'+id);
+  if(!zone) return;
+  const sc = screenshots[id];
+  if(sc){
+    zone.classList.add('has-file');
+    zone.querySelector('.upload-zone-text').textContent = sc.name;
+    // Show thumbnail
+    let tw = document.getElementById('tw-'+id);
+    if(!tw){
+      tw = document.createElement('div');
+      tw.id = 'tw-'+id;
+      tw.className = 'thumb-wrap';
+      tw.innerHTML = `<img class="thumb" src="${sc.dataUrl}" alt="Screenshot" /><button class="thumb-remove" onclick="removeScreenshot('${id}',event)" title="Remove">×</button>`;
+      zone.parentElement.appendChild(tw);
+    } else {
+      tw.querySelector('img').src = sc.dataUrl;
+    }
+  } else {
+    zone.classList.remove('has-file');
+    zone.querySelector('.upload-zone-text').textContent = 'Attach screenshot (optional)';
+    const tw = document.getElementById('tw-'+id);
+    if(tw) tw.remove();
+  }
+}
+
+// ─────────────────────────────────────────────
+// RENDER
+// ─────────────────────────────────────────────
+function badgeHtml(p){
+  if(p==='critical') return '<span class="badge b-critical">critical</span>';
+  if(p==='important') return '<span class="badge b-important">important</span>';
+  return '<span class="badge b-nice">nice to have</span>';
+}
+
+function render(){
+  const cl = document.getElementById('checklist');
+  cl.innerHTML = '';
+  const phases = currentTab==='all' ? ['pre','post'] : currentTab==='pre' ? ['pre'] : ['post'];
+  phases.forEach(ph => {
+    if(currentTab==='all'){
+      const lbl = document.createElement('div');
+      lbl.className = 'phase-label';
+      lbl.textContent = ph==='pre' ? 'Pre-launch' : 'Post-launch';
+      cl.appendChild(lbl);
+    }
+    data[ph].forEach((sec, si) => {
+      const done = sec.items.filter((_,ii) => state[buildId(ph,si,ii)]).length;
+      const secEl = document.createElement('div');
+      secEl.className = 'section';
+      secEl.innerHTML = `<div class="section-header"><div class="section-icon" style="background:${sec.color}">${sec.icon}</div><span class="section-title">${sec.title}</span><span class="section-progress" id="sp-${ph}-${si}">${done}/${sec.items.length}</span></div>`;
+      sec.items.forEach((item, ii) => {
+        const id = buildId(ph,si,ii);
+        const isDone = state[id];
+        const div = document.createElement('div');
+        div.className = 'item' + (isDone?' done':'');
+        div.id = 'row-'+id;
+        div.onclick = (e) => toggle(id, e);
+
+        // Build upload zone
+        const hasShot = !!screenshots[id];
+        const shotName = hasShot ? screenshots[id].name : 'Attach screenshot (optional)';
+
+        div.innerHTML = `
+          <div class="cb${isDone?' checked':''}" id="cb-${id}"><span class="ck" style="display:${isDone?'block':'none'}">✓</span></div>
+          <div class="item-body">
+            <div class="item-label">${item.t} ${badgeHtml(item.p)}</div>
+            <div class="item-meta">${item.m}</div>
+            <label class="upload-zone${hasShot?' has-file':''}" id="uz-${id}" onclick="event.stopPropagation()">
+              <span class="upload-zone-icon">📎</span>
+              <span class="upload-zone-text">${shotName}</span>
+              <input type="file" accept="image/*,.png,.jpg,.jpeg,.gif,.webp,.pdf" onchange="handleFileSelect('${id}',this)" />
+            </label>
+            ${hasShot ? `<div class="thumb-wrap" id="tw-${id}"><img class="thumb" src="${screenshots[id].dataUrl}" alt="Screenshot" /><button class="thumb-remove" onclick="removeScreenshot('${id}',event)" title="Remove">×</button></div>` : ''}
+          </div>`;
+        secEl.appendChild(div);
+      });
+      cl.appendChild(secEl);
+    });
+  });
+  updateProgress();
+}
+
+// ─────────────────────────────────────────────
+// SUBMIT  (Formspree — replace YOUR_FORM_ID)
+// ─────────────────────────────────────────────
+async function submitChecklist(){
+  const name = document.getElementById('reviewer-name').value.trim();
+  const role = document.getElementById('reviewer-role').value.trim();
+  const statusEl = document.getElementById('submit-status');
+  const btn = document.getElementById('submit-btn');
+
+  if(!name || !role){
+    statusEl.className = 'submit-status err';
+    statusEl.textContent = '⚠️ Please fill in your name and role before submitting.';
+    return;
+  }
+
+  // Build summary
+  const keys = Object.keys(state);
+  const doneIds = keys.filter(k=>state[k]);
+  const total = keys.length;
+  const doneCount = doneIds.length;
+  const pct = total ? Math.round(doneCount/total*100) : 0;
+
+  // Build readable completed items list
+  const completedItems = [];
+  ['pre','post'].forEach(ph => {
+    data[ph].forEach((sec,si) => {
+      sec.items.forEach((item,ii) => {
+        const id = buildId(ph,si,ii);
+        if(state[id]){
+          const shot = screenshots[id] ? ` [screenshot: ${screenshots[id].name}]` : '';
+          completedItems.push(`[${ph.toUpperCase()}] ${sec.title} → ${item.t}${shot}`);
+        }
+      });
+    });
+  });
+
+  const incompleteItems = [];
+  ['pre','post'].forEach(ph => {
+    data[ph].forEach((sec,si) => {
+      sec.items.forEach((item,ii) => {
+        const id = buildId(ph,si,ii);
+        if(!state[id]) incompleteItems.push(`[${ph.toUpperCase()}] ${sec.title} → ${item.t} (${item.p})`);
+      });
+    });
+  });
+
+  const payload = {
+    reviewer_name: name,
+    reviewer_role: role,
+    submitted_at: new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'}),
+    completion: `${doneCount}/${total} (${pct}%)`,
+    completed_items: completedItems.join('\n'),
+    incomplete_items: incompleteItems.join('\n'),
+    screenshots_attached: Object.keys(screenshots).map(id => screenshots[id].name).join(', ') || 'None',
+    _subject: `SEO Checklist Submission — ${name} (${pct}% complete)`
+  };
+
+  btn.disabled = true;
+  btn.querySelector('span').textContent = 'Submitting…';
+  statusEl.className = 'submit-status';
+  statusEl.textContent = '';
+
+  try {
+    // ⚠️  REPLACE "YOUR_FORM_ID" with your actual Formspree form ID
+    // Get your free form ID at https://formspree.io — takes 2 minutes
+    const FORMSPREE_ID = 'mlgaerkl';
+
+    if(FORMSPREE_ID === 'YOUR_FORM_ID'){
+      // Demo mode: just log and show success UI
+      console.log('Checklist submission payload:', payload);
+      await new Promise(r => setTimeout(r, 900));
+      statusEl.className = 'submit-status ok';
+      statusEl.innerHTML = '✅ <strong>Demo mode:</strong> Submission logged to console. Replace <code>YOUR_FORM_ID</code> in the script with your Formspree ID to go live.';
+      btn.querySelector('span').textContent = 'Submit Checklist';
+      btn.disabled = false;
+      return;
+    }
+
+    const res = await fetch(`https://formspree.io/f/${FORMSPREE_ID}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if(res.ok){
+      statusEl.className = 'submit-status ok';
+      statusEl.textContent = `✅ Submitted successfully! ${doneCount}/${total} items reported as done.`;
+      btn.querySelector('span').textContent = 'Submit Checklist';
+      btn.disabled = false;
+    } else {
+      throw new Error('Server error ' + res.status);
+    }
+  } catch(err){
+    statusEl.className = 'submit-status err';
+    statusEl.textContent = '❌ Submission failed. Please check your Formspree ID or try again.';
+    btn.querySelector('span').textContent = 'Submit Checklist';
+    btn.disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+initState(); render();
+</script>
+</body>
+</html>
